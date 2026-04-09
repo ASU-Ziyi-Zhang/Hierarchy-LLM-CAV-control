@@ -6,6 +6,8 @@
 
 import argparse
 
+from src.scenario_config import list_scenarios
+
 def register_parser(parser):
     ## Handle command line input arguments
     # SUMO backend DLL options
@@ -25,7 +27,7 @@ def register_parser(parser):
         default="sumo_scenarios", nargs="?", type=str)
     
     parser.add_argument('--scenario',
-        help='Select SUMO scenario to run from scenarios folder: ["onramp", "i24", "roosevelt"]. Default "onramp"',
+        help=f'Select SUMO scenario to run from scenarios folder: {list_scenarios()}. Default "onramp"',
         default="onramp", nargs="?", type=str)
 
     parser.add_argument('--penetration',

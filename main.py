@@ -55,6 +55,7 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 
 from src.agents import PCC, CAV, EXT
+from src.scenario_config import get_scenario_config
 from src.hierarchical_control import HierarchyRuntime
 from src.sensing import Communications
 from src.settings import RADAR_RANGE, VISION_RANGE, CONN_RANGE
@@ -81,12 +82,6 @@ traci = importlib.import_module( ARGS.backend ) # traci or libsumo are imported 
 
 # -------------------------------------------------------------------------------------------------------
 
-MERGING_SCENARIOS = ['i24', 'onramp']
-TRAFFIC_LIGHT_SCENARIOS = ['chi_clinton_canal', 'roosevelt', 'roosevelt_simple']
-
-ONRAMP_LANES = ['ramp_0', 'E2_0', 'E1_0', 'E3_0', 'E4_0', 'E6_0', 'E7_0'] # TODO - Hardcoded this list of lane ids for now for onramp scenario - all lanes attached to onramp
-I24_ENDING_LANES = ['E1_0', 'E7_0'] # TODO - Hardcoded this list of lane ids for now for onramp scenario - lanes that end at the end of the onramp
-ONRAMP_ENDING_LANES = ['E2_0'] # TODO - Hardcoded this list of lane ids for now for onramp scenario - lanes that end at the end of the onramp
 
 class simulation():
     ### Class definitions
@@ -110,13 +105,14 @@ class simulation():
             self.args.penetration /= 100.
 
         assert self.args.penetration <= 1 and self.args.penetration >= 0, 'Penetration rate must be in interval [0, 1].'
+        self.scenario_cfg = get_scenario_config(self.args.scenario)
         self.penetration_tag = f"p{self.args.penetration:g}"
         self.run_tag = f"{self.args.scenario}_{self.penetration_tag}"
         if self.args.time_to_teleport is None:
             # 60 s is short enough to trigger within a single green phase at an
             # urban intersection (~40-60 s), teleporting any CAV whose ACC
             # controller fails to resume after a red stop.
-            self.time_to_teleport = 60.0 if self.args.scenario in TRAFFIC_LIGHT_SCENARIOS else -1.0
+            self.time_to_teleport = self.scenario_cfg.default_time_to_teleport
         else:
             self.time_to_teleport = float(self.args.time_to_teleport)
         
@@ -385,9 +381,11 @@ class simulation():
         return controller
 
 
-    def init_vehicle(self, veh_id, route_id="mainlane", type_id="DEFAULT_VEHTYPE"):
+    def init_vehicle(self, veh_id, route_id=None, type_id="DEFAULT_VEHTYPE"):
         """
         """
+
+        route_id = self.scenario_cfg.resolve_route_id(route_id)
 
         # Add a new vehicle
         traci.vehicle.add(veh_id, route_id)
@@ -405,10 +403,10 @@ class simulation():
         print(f'  Removed vehicle {veh_id}')
 
     def is_traffic_light_scenario(self):
-        return self.args.scenario in TRAFFIC_LIGHT_SCENARIOS
-    
+        return self.scenario_cfg.is_traffic_light
+
     def is_merging_scenario(self):
-        return self.args.scenario in MERGING_SCENARIOS
+        return self.scenario_cfg.is_merging
     
     def is_exit_lane(self, lane_id: str) -> bool:
         connections = traci.lane.getLinks(lane_id)
@@ -682,9 +680,9 @@ class simulation():
 
     def get_onramp_lane(self, ego_id):
         """
-        Checks for hardcoded, specific lanes in onramp and i24 scenario
+        Checks whether the vehicle is on an onramp lane using scenario config.
 
-        Returns lane_id in onramp scenario, otherwise ''
+        Returns lane_id in merging scenarios, otherwise ''
                 is_lane_onramp Flag to indicate if lane is part of any lanes attached to onramp
                 is_lane_ending Flag to indicate if lane is last in onramp and will end
         """
@@ -693,11 +691,15 @@ class simulation():
         is_lane_onramp = False
         is_lane_ending = False
 
-        if self.is_merging_scenario(): # TODO - Hardcoded these id values for now
+        if self.is_merging_scenario():
             lane_id = traci.vehicle.getLaneID(ego_id)
+            cfg = self.scenario_cfg
 
-            is_lane_onramp = ('onramp' in lane_id.lower()) or (lane_id in ONRAMP_LANES)
-            is_lane_ending = (lane_id in I24_ENDING_LANES) if self.args.scenario == 'i24' else (lane_id in ONRAMP_ENDING_LANES)
+            is_lane_onramp = (
+                (cfg.onramp_lane_keyword and cfg.onramp_lane_keyword in lane_id.lower())
+                or lane_id in cfg.onramp_lanes
+            )
+            is_lane_ending = lane_id in cfg.ending_lanes
 
         return lane_id, is_lane_onramp, is_lane_ending
 
@@ -711,7 +713,7 @@ class simulation():
         s_max = 5000. # Max allowed forward travel distance [m]: ego_distance(t) <= s_max \forall t
 
         ### Get road geometry information
-        if lane_id == 'E2_0': # TODO - Hardcoded this id value for now - onramp scenario merging lane
+        if lane_id and lane_id == self.scenario_cfg.merging_lane:
             link_length = traci.lane.getLength(lane_id)
             link_distance = traci.vehicle.getLanePosition(ego_id)
 
@@ -728,10 +730,10 @@ class simulation():
         """
 
         # Get the physical engine speed limit - important for trucks
-        speed_engine = 60. # traci.vehicle.getMaxSpeed(ego_id)
+        speed_engine = self.scenario_cfg.speed_engine
 
         # Get the road speed limit
-        speed_limit_default = 30. # Choose a default speed limit for now - how to get this edge information
+        speed_limit_default = self.scenario_cfg.speed_limit_default
         if not ego_lane_id:
             ego_lane_id = traci.vehicle.getLaneID(ego_id)
 
@@ -884,11 +886,9 @@ class simulation():
         valid connection to its route's next edge, immediately teleport it
         laterally to the best route-valid lane at the same position.
 
-        This handles the Clinton intersection trap: edge 435834768#0 is only
-        9.95 m long and lane 0 is right-turn-only.  CAVs routed straight or
-        left that end up on lane 0 have no valid forward connection and will
-        deadlock.  Moving them to a valid lane before the controller runs
-        prevents the deadlock entirely.
+        This prevents deadlock on short edges where a turn-only lane has no
+        valid forward connection for the vehicle's route.  Moving the CAV to
+        a route-valid lane before the controller runs avoids the deadlock.
 
         Returns True if a rescue teleport was performed.
         """
@@ -981,7 +981,6 @@ class simulation():
             TLInfo[tlID]["barriers"] = [None]
 
         for indtl, tlID in enumerate(tl_id_list):
-            # tlID = "Delano"
             tl_logic_s = tl_logic[tlID]
             phases = tl_logic_s.phases
             subParameters = tl_logic_s.subParameter
@@ -1006,48 +1005,14 @@ class simulation():
             tY_arr = [0]*nPhase
             tRC_arr = [0]*nPhase
 
-            # Manually coded values for veh ext, yellow, red clearance 
-            if tlID == "Canal":
-                tY_arr = [3]*nPhase
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            elif tlID == "Clark":
-                tY_arr = [3]*nPhase
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            elif tlID == "Clinton":
-                tY_arr = [3]*nPhase
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            elif tlID == "Delano":
-                tVehExt_arr[5] = 5
-                for k in [1,3,5,6,7]:
-                    tY_arr[k] = 3
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            elif tlID == "Michigan":
-                for k in [0,4,6]:
-                    tVehExt_arr[k] = 3
-                tY_arr = [3]*nPhase    
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-                for k in range(0,8,2):
-                    tRC_arr[k] = 1
-            elif tlID == "State":
-                tVehExt_arr[6] = 3
-                tY_arr = [3]*nPhase
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            elif tlID == "Wabash":
-                tY_arr = [3]*nPhase
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            elif tlID == "J1":
-                tY_arr = [3]*nPhase
-                for k in range(1,9,2):
-                    tRC_arr[k] = 2
-            else:
-                raise ValueError(f'Intersection {tlID} not recognized!')
+            # Per-intersection veh ext, yellow, red clearance from scenario config
+            overrides = self.scenario_cfg.signal_timing_overrides
+            if tlID not in overrides:
+                raise ValueError(f'Intersection {tlID} not found in scenario config signal_timing_overrides!')
+            ovr = overrides[tlID]
+            tVehExt_arr = list(ovr["veh_ext"])
+            tY_arr = list(ovr["yellow"])
+            tRC_arr = list(ovr["red_clearance"])
 
             # name, tcyc, toffset, duration, minDur, maxDur, vehExt, yellow, red
             timingTable = [[0]*9 for _ in range(8)]
@@ -1178,8 +1143,8 @@ class simulation():
             # find active two phases using current states per phase
             idxPhases = [i for i, sp in enumerate(statesPhases) if sp != "r"]    
             
-            # in case meaningless phase exists (e.g., phase 2 at Delano)
-            # check if new phase compard to previous phases
+            # in case a meaningless phase exists (only one active phase)
+            # check if new phase compared to previous phases
             if len(idxPhases) == 1:
                 one = idxPhases[0]
                 if not idxPhasesPrv:
@@ -1488,7 +1453,7 @@ class simulation():
     def debug(self, ego_id = '', controller=None):
         ''' If in debug mode, print the ego vehicle controller data from its _repr_ method.'''
         if self.args.debug:
-            if 'east_cav.8' in ego_id or 'ramp_0_cav.2' in ego_id:
+            if any(dbg_id in ego_id for dbg_id in self.scenario_cfg.debug_vehicle_ids):
                 if controller is not None:
                     print(controller)
                 elif hasattr(self, "ego"):
@@ -1666,12 +1631,7 @@ class simulation():
 
                 # Inject vehicle only if it's new
                 if veh_id not in seen_vehicles and veh_id not in vehicle_ids and veh_type == EXT().type_id:
-                    if 'east' in veh_id:
-                        route_id = "r_east"
-                    elif 'west' in veh_id:
-                        route_id = "r_west"
-                    else:
-                        route_id = "mainlane"
+                    route_id = self.scenario_cfg.resolve_replay_route_id(veh_id)
 
                     self.init_vehicle(veh_id, route_id=route_id, type_id=veh_type)
 

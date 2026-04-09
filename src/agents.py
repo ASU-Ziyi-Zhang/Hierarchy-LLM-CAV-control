@@ -718,14 +718,14 @@ class CAV(_vehicle):
 
 class EXT(_vehicle):
     '''CAV driver for externally controlled vehicles placed into microsimulation'''
-    def __init__(self, t0 = -1., vd = 20., id = -1):
+    def __init__(self, t0 = -1., vd = 20., id = -1, route_id = 'mainlane'):
         super().__init__(t0, vd, id)
 
         self.type = ControlType.EXT.value
 
         self.type_id = 'ext' # Vehicle type in SUMO
         self.veh_id = f'ext_{self.id}' # Unique vehicle id in SUMO
-        self.route_id = 'mainlane' # Vehicle route to follow in SUMO
+        self.route_id = route_id # Vehicle route to follow in SUMO
 
         # Controls
         self.ua = 0. # Acceleration command

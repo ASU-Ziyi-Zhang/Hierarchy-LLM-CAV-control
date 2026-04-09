@@ -14,6 +14,7 @@ env/
 
 # SUMO simulation outputs (generated, large)
 sumo_scenarios/*/output/
+sumo_scenarios/*/output_*/
 sumo_scenarios/*/*_p*.rou.xml
 sumo_scenarios/*/excel_file/
 sumo_scenarios/*/batch_logs/
