@@ -38,8 +38,8 @@ pen_array=(0 10 20 30 40) # 15 20 25 30 35 40 45 50) # Array for CAV penetration
 # Structure should be <cd>/<scenario_folder>/<scenario>
 # Output files should be <cd>/<scenario_folder>/<scenario>/output
 # Log files will be saved in <cd>/logs/<timestamp>/<penetration> with veh_log_data.csv and sim_log_data.csv
-scenario_folder=dev/sumo_scenarios
-scenario=roosevelt_simple # Sumo scenario name
+scenario_folder=sumo_scenarios
+scenario=roosevelt # Sumo scenario name
 
 ### ------------------
 ### Iterate
@@ -58,7 +58,8 @@ for pen in "${pen_array[@]}"; do
         python main.py --scenario_folder $scenario_folder --scenario $scenario --penetration $pen_rate --log_tl
 
         # Save data
-        cp $scenario_folder/$scenario/output/fcd.xml $scenario_folder/$scenario/output/fcd_$pen.xml # Most recent file is fcd.xml - copy to a permanent file by penetration rate
+        pen_tag=$(python -c "pen=float('$pen_rate'); print(f'p{pen:g}')")
+        cp $scenario_folder/$scenario/output/fcd_${pen_tag}.xml $scenario_folder/$scenario/output/fcd_$pen.xml
 
     else # Plotting
         info "Plotting SUMO simulation with CAV penetration rate $pen_rate"

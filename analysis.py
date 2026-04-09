@@ -111,6 +111,8 @@ import re
 from typing import Optional, Iterable, Set, Dict, Any, Tuple, List
 import bisect
 
+from src.scenario_config import get_scenario_config
+
 # Bump this version whenever metric computation logic changes (e.g. queue
 # rewrite, new output schema) so that stale .pkl caches are automatically
 # invalidated even though the *input* files haven't changed.
@@ -470,7 +472,6 @@ def _discover_urban_support_files(file_dir: str, penetration_tag: str | None = N
     }
 
 
-TRAFFIC_LIGHT_SCENARIOS = {"chi_clinton_canal", "roosevelt", "roosevelt_simple"}
 DEFAULT_TRAFFIC_LIGHT_WARMUP_S = 350.0
 
 
@@ -482,7 +483,11 @@ def _default_evaluation_start_s(file_dir: str) -> float:
     """
     scenario_dir = _infer_scenario_root(file_dir)
     scenario_name = os.path.basename(scenario_dir.rstrip("\\/")).lower()
-    if scenario_name in TRAFFIC_LIGHT_SCENARIOS:
+    try:
+        scenario_cfg = get_scenario_config(scenario_name, scenario_dir=scenario_dir)
+    except ValueError:
+        scenario_cfg = None
+    if scenario_cfg and scenario_cfg.is_traffic_light:
         return DEFAULT_TRAFFIC_LIGHT_WARMUP_S
     return 0.0
 

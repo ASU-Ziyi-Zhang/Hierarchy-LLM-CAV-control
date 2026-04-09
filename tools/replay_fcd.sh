@@ -30,8 +30,8 @@ error() {
 
 ## Run replay microsimulation for a given output folder
 ## <sumo_scenario_folder>/<sumo_scenario>/output should contain the fcd.xml file to replay
-scenario_folder="dev/sumo_scenarios" # Directory for the FCD file
-scenario="roosevelt_simple" # Folder for the FCD file, should be in the format <sumo_scenario_folder>/<sumo_scenario>/output
+scenario_folder="sumo_scenarios" # Directory for the FCD file
+scenario="roosevelt" # Folder for the FCD file, should be in the format <sumo_scenario_folder>/<sumo_scenario>/output
 replay_dir="output/" # Directory for the FCD file, should be in the format <sumo_scenario_folder>/<sumo_scenario>/<output>
 replay_file="fcd.xml" # Name of the FCD file to replay, should be in the output folder of the simulation run
 penetration=30 # CAV penetration rate for the simulation run that generated the FCD file, used for readding the vehicles

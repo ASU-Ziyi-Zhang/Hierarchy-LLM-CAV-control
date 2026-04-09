@@ -105,7 +105,8 @@ class simulation():
             self.args.penetration /= 100.
 
         assert self.args.penetration <= 1 and self.args.penetration >= 0, 'Penetration rate must be in interval [0, 1].'
-        self.scenario_cfg = get_scenario_config(self.args.scenario)
+        scenario_dir = os.path.join(self.args.scenario_folder, self.args.scenario)
+        self.scenario_cfg = get_scenario_config(self.args.scenario, scenario_dir=scenario_dir)
         self.penetration_tag = f"p{self.args.penetration:g}"
         self.run_tag = f"{self.args.scenario}_{self.penetration_tag}"
         if self.args.time_to_teleport is None:

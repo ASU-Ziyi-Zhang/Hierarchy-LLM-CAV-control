@@ -39,7 +39,7 @@ else:
 # Get file paths
 sim_log_file_path = os.path.join(log_folder, "sim_log_data.csv")
 veh_log_file_path = os.path.join(log_folder, "veh_log_data.csv")
-tl_data_file_path = os.path.join(log_folder, "roosevelt_simple_tl_data.json")
+tl_data_file_path = os.path.join(log_folder, "roosevelt_tl_data.json")
 
 if not (os.path.exists(sim_log_file_path) and os.path.exists(veh_log_file_path) and os.path.exists(tl_data_file_path)):
     raise ValueError("One or more data files are missing. Please check the file paths.")

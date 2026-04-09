@@ -85,10 +85,6 @@ Usage examples:
 
     i24
     python dashboard.py --scenario i24 --urban no --exclude-lane E2_0 --exclude-lane E4_0 --exclude-lane E6_0  --exclude-lane E1_0 --p 0.1
-
-    python dashboard.py \
-    --scenario i24b --urban no \
-    $(printf -- '--exclude-lane %q ' "${ALL_EXCLUDES[@]}")
 """
 
 import dash
