@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# SUMO simulation outputs (generated, large)
+sumo_scenarios/*/output/
+sumo_scenarios/*/*_p*.rou.xml
+sumo_scenarios/*/excel_file/
+sumo_scenarios/*/batch_logs/
+sumo_scenarios/*/metrics_*.pkl
+sumo_scenarios/*/by_edge.xml
+sumo_scenarios/*/by_lane.xml
+sumo_scenarios/*/detector_output.xml
+sumo_scenarios/*/stats.xml
+sumo_scenarios/*/summary.xml
+sumo_scenarios/*/tripinfo.xml
+
+# Intermediate archives
+_archive_intermediate/
+
+# Comparison outputs
+comparison/output/
+
+# Figures (generated)
+figures/
+logs/
+*.prof
+
+# Temp / dev
+tmp/
+dev/
+
+# Matlab build artifacts
+matlab/slprj/

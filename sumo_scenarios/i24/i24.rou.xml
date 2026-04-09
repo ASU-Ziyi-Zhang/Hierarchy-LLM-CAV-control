@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+  
+    
+    
+    
+  <vType id="hdv" carFollowModel="IDM" speedFactor="1" maxSpeed="35.46631186967486" minGap="2.94390525189298" accel="2.3655452248462066" decel="3.207636533267079" tau="1.6603715426741472" emergencyDecel="8.00" delta="4.00" lcStrategic="1.4091719209419492" lcCooperative="0.4854467728463593" lcAssertive="4.815590691539943" lcSpeedGain="1.1639111046014528" lcKeepRight="0.30" lcOvertakeRight="0.877" />
+
+  <vType id="cav" carFollowModel="IDM" speedFactor="1" maxSpeed="35.46631186967486" minGap="2.94390525189298" accel="2.3655452248462066" decel="3.207636533267079" tau="1.6603715426741472" emergencyDecel="8.00" delta="4.00" lcStrategic="1.4091719209419492" lcCooperative="0.4854467728463593" lcAssertive="4.815590691539943" lcSpeedGain="1.1639111046014528" lcKeepRight="0.30" lcOvertakeRight="0.877" />
+
+    
+  <route id="r_0" edges="E0 E1 E3 E5 E7 E8" />
+   
+    
+  <route id="r_1" edges="E0 E1 E3 E4" />
+    
+    
+  <route id="r_2" edges="E2 E1 E3 E4" />
+    
+    
+  <route id="r_3" edges="E2 E1 E3 E5 E7 E8" />
+    
+    
+  <route id="r_4" edges="E6 E7 E8" />
+    
+  
+
+  <flow id="f_10_hdv" type="hdv" begin="0" departLane="best" route="r_0" end="1800" vehsPerHour="2401.642443729904" departSpeed="desired" /><flow id="f_10_cav" type="cav" begin="0" departLane="best" route="r_0" end="1800" vehsPerHour="1029.2753330271014" departSpeed="desired" /><flow id="f_11_hdv" type="hdv" begin="0" departLane="best" route="r_1" end="1800" vehsPerHour="301.7575562700964" departSpeed="desired" /><flow id="f_11_cav" type="cav" begin="0" departLane="best" route="r_1" end="1800" vehsPerHour="129.32466697289848" departSpeed="desired" /><flow id="f_12_hdv" type="hdv" begin="0" departLane="best" route="r_2" end="1800" vehsPerHour="38.44244372990355" departSpeed="desired" /><flow id="f_12_cav" type="cav" begin="0" departLane="best" route="r_2" end="1800" vehsPerHour="16.47533302710152" departSpeed="desired" /><flow id="f_13_hdv" type="hdv" begin="0" departLane="best" route="r_3" end="1800" vehsPerHour="305.9575562700966" departSpeed="desired" /><flow id="f_13_cav" type="cav" begin="0" departLane="best" route="r_3" end="1800" vehsPerHour="131.1246669728985" departSpeed="desired" /><flow id="f_14_hdv" type="hdv" begin="0" departLane="best" route="r_4" end="1800" vehsPerHour="106.4" departSpeed="desired" /><flow id="f_14_cav" type="cav" begin="0" departLane="best" route="r_4" end="1800" vehsPerHour="45.6" departSpeed="desired" /><flow id="f_15_hdv" type="hdv" begin="1800" departLane="best" route="r_0" end="3600" vehsPerHour="4120.650873362446" departSpeed="desired" /><flow id="f_15_cav" type="cav" begin="1800" departLane="best" route="r_0" end="3600" vehsPerHour="1765.9932314410482" departSpeed="desired" /><flow id="f_16_hdv" type="hdv" begin="1800" departLane="best" route="r_1" end="3600" vehsPerHour="451.7491266375546" departSpeed="desired" /><flow id="f_16_cav" type="cav" begin="1800" departLane="best" route="r_1" end="3600" vehsPerHour="193.60676855895193" departSpeed="desired" /><flow id="f_17_hdv" type="hdv" begin="1800" departLane="best" route="r_2" end="3600" vehsPerHour="55.050873362445465" departSpeed="desired" /><flow id="f_17_cav" type="cav" begin="1800" departLane="best" route="r_2" end="3600" vehsPerHour="23.593231441048054" departSpeed="desired" /><flow id="f_18_hdv" type="hdv" begin="1800" departLane="best" route="r_3" end="3600" vehsPerHour="502.1491266375542" departSpeed="desired" /><flow id="f_18_cav" type="cav" begin="1800" departLane="best" route="r_3" end="3600" vehsPerHour="215.2067685589518" departSpeed="desired" /><flow id="f_19_hdv" type="hdv" begin="1800" departLane="best" route="r_4" end="3600" vehsPerHour="179.2" departSpeed="desired" /><flow id="f_19_cav" type="cav" begin="1800" departLane="best" route="r_4" end="3600" vehsPerHour="76.8" departSpeed="desired" /></routes>
